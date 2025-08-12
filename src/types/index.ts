@@ -36,7 +36,7 @@ export interface AppSettings {
 
   // AI API Settings
   aiSettings?: {
-    provider: 'openai' | 'gemini' | 'ollama'
+    provider?: 'openai' | 'gemini' | 'ollama'
     openaiApiKey?: string
     geminiApiKey?: string
     model?: string
@@ -51,11 +51,11 @@ export interface AppSettings {
   }
   // Overlay Position Settings
   overlaySettings?: {
-    position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center' | 'cursor'
-    offset: { x: number; y: number }
-    followCursor: boolean
-    stayOnScreen: boolean
-    alwaysOnTop: boolean
+    position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center' | 'cursor'
+    offset?: { x: number; y: number }
+    followCursor?: boolean
+    stayOnScreen?: boolean
+    alwaysOnTop?: boolean
   }
 }
 

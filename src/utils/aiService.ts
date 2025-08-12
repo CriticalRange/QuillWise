@@ -30,10 +30,11 @@ class AIService {
 
   constructor(config: AIServiceConfig = {}) {
     this.config = {
-      provider: 'openai',
-      model: 'gpt-3.5-turbo',
+      provider: 'ollama',
+      model: undefined,
       maxTokens: 1000,
       baseURL: 'https://api.openai.com/v1',
+      ollamaUrl: 'http://localhost:11434',
       ...config
     }
   }
@@ -92,7 +93,44 @@ class AIService {
 
   // Build prompt based on task type
   private buildPrompt(text: string, type: string, context: string): string {
-    // Handle translation context specially
+    // Handle translation contexts
+    if (context.startsWith('translation_')) {
+      const langCode = context.split('_')[1]
+      const languageNames: {[key: string]: string} = {
+        'tr': 'Turkish',
+        'en': 'English', 
+        'es': 'Spanish',
+        'fr': 'French',
+        'de': 'German',
+        'it': 'Italian',
+        'pt': 'Portuguese',
+        'ru': 'Russian',
+        'ja': 'Japanese',
+        'ko': 'Korean',
+        'zh': 'Chinese',
+        'ar': 'Arabic'
+      }
+      
+      const targetLanguage = languageNames[langCode] || 'English'
+      return `Translate the following text to ${targetLanguage}. Provide only the translation without any additional explanation:\n\n"${text}"\n\nTranslation:`
+    }
+
+    // Handle enhancement contexts
+    if (context.startsWith('enhancement_')) {
+      const parts = context.split('_')
+      const enhancementType = parts[1]
+      const customPrompt = parts.slice(2).join('_')
+      
+      return `${customPrompt}:\n\n"${text}"\n\nResult:`
+    }
+
+    // Handle custom contexts
+    if (context.startsWith('custom_')) {
+      const customPrompt = context.replace('custom_', '')
+      return `${customPrompt}:\n\n"${text}"\n\nResult:`
+    }
+
+    // Legacy translation context
     if (context === 'translation') {
       return `Translate the following text to Turkish. If the text is already in Turkish, translate it to English. Provide only the translation:\n\n"${text}"\n\nTranslation:`
     }
@@ -302,9 +340,11 @@ class AIService {
   // Update configuration with settings
   updateConfig(aiSettings: any): void {
     if (aiSettings) {
+      console.log('AIService - updateConfig called with:', aiSettings)
+      console.log('AIService - current config before update:', this.config)
       this.config = {
         ...this.config,
-        provider: aiSettings.provider || 'gemini',
+        provider: aiSettings.provider || this.config.provider || 'ollama',
         apiKey: aiSettings.provider === 'ollama' ? undefined : 
                 aiSettings.provider === 'gemini' ? aiSettings.geminiApiKey : aiSettings.openaiApiKey,
         model: aiSettings.model || (aiSettings.provider === 'gemini' ? 'gemini-1.5-flash' : 'gpt-3.5-turbo'),

@@ -23,12 +23,12 @@ const defaultSettings: AppSettings = {
   },
 
   aiSettings: {
-    provider: 'gemini',
+    provider: 'ollama',
     openaiApiKey: '',
     geminiApiKey: '',
     ollamaUrl: 'http://localhost:11434',
-    ollamaModel: 'llama3.2',
-    model: 'gemini-1.5-flash',
+    ollamaModel: undefined,
+    model: undefined,
     maxTokens: 1000,
     temperature: 0.7
   },
@@ -52,12 +52,35 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
       
       if (window.electronAPI && window.electronAPI.getSettings) {
         const settings = await window.electronAPI.getSettings()
-        finalSettings = { ...defaultSettings, ...settings }
+        finalSettings = { 
+          ...defaultSettings, 
+          ...settings,
+          aiSettings: { 
+            ...defaultSettings.aiSettings, 
+            ...settings.aiSettings 
+          },
+          overlaySettings: { 
+            ...defaultSettings.overlaySettings, 
+            ...settings.overlaySettings 
+          }
+        }
       } else {
         // Fallback for development/browser mode
         const localSettings = localStorage.getItem('quillwise_settings')
         if (localSettings) {
-          finalSettings = { ...defaultSettings, ...JSON.parse(localSettings) }
+          const parsed = JSON.parse(localSettings)
+          finalSettings = { 
+            ...defaultSettings, 
+            ...parsed,
+            aiSettings: { 
+              ...defaultSettings.aiSettings, 
+              ...parsed.aiSettings 
+            },
+            overlaySettings: { 
+              ...defaultSettings.overlaySettings, 
+              ...parsed.overlaySettings 
+            }
+          }
         }
       }
       
@@ -73,7 +96,18 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
 
   updateSettings: async (newSettings: Partial<AppSettings>) => {
     const currentSettings = get().settings
-    const updatedSettings = { ...currentSettings, ...newSettings }
+    const updatedSettings = { 
+      ...currentSettings, 
+      ...newSettings,
+      aiSettings: { 
+        ...currentSettings.aiSettings, 
+        ...newSettings.aiSettings 
+      },
+      overlaySettings: { 
+        ...currentSettings.overlaySettings, 
+        ...newSettings.overlaySettings 
+      }
+    }
     
     try {
       if (window.electronAPI && window.electronAPI.saveSettings) {

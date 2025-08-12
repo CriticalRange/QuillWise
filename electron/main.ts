@@ -17,9 +17,15 @@ function createFloatingOverlay(): void {
   }
 
   try {
+    // Load saved position
+    const settings = store.get('settings', {}) as AppSettings
+    const overlayPosition = settings.overlayPosition || { x: 100, y: 100 }
+
     floatingOverlayWindow = new BrowserWindow({
       width: 320,
       height: 200,
+      x: overlayPosition.x,
+      y: overlayPosition.y,
       show: false,
       frame: false,
       resizable: false,
@@ -87,16 +93,9 @@ function showFloatingOverlay(): void {
   }
 
   try {
-    const { screen } = require('electron')
-    const primaryDisplay = screen.getPrimaryDisplay()
-    const screenBounds = primaryDisplay.workAreaSize
-    const windowBounds = floatingOverlayWindow.getBounds()
+    // Use current position (don't change it)
+    const currentPosition = floatingOverlayWindow.getPosition()
     
-    // Position in center of screen
-    const x = Math.round((screenBounds.width - windowBounds.width) / 2)
-    const y = Math.round((screenBounds.height - windowBounds.height) / 2)
-    
-    floatingOverlayWindow.setPosition(x, y)
     floatingOverlayWindow.show()
     floatingOverlayWindow.focus()
     
@@ -104,7 +103,7 @@ function showFloatingOverlay(): void {
     const clipboardText = clipboard.readText()
     floatingOverlayWindow.webContents.send('clipboard-text', clipboardText)
     
-    logToFile(`Floating overlay shown at position (${x}, ${y})`, 'INFO')
+    logToFile(`Floating overlay shown at position (${currentPosition[0]}, ${currentPosition[1]})`, 'INFO')
     
   } catch (error) {
     logToFile(`Failed to show floating overlay: ${error}`, 'ERROR')
@@ -293,6 +292,7 @@ interface AppSettings {
   clipboardReplacement?: boolean
   windowSize: { width: number; height: number }
   windowPosition: { x: number; y: number }
+  overlayPosition?: { x: number; y: number }
   aiSettings?: {
     provider: 'openai' | 'gemini' | 'ollama'
     openaiApiKey?: string
@@ -378,7 +378,8 @@ function createWindow(): void {
       onboardingCompleted: false,
       clipboardReplacement: false,
       windowSize: { width: 420, height: 580 },
-      windowPosition: { x: 100, y: 100 }
+      windowPosition: { x: 100, y: 100 },
+      overlayPosition: { x: 100, y: 100 }
     }
     
     const settings = store.get('settings', defaultSettings) as AppSettings
@@ -836,6 +837,7 @@ ipcMain.handle('get-settings', async () => {
       clipboardReplacement: false,
       windowSize: { width: 380, height: 700 },
       windowPosition: { x: 100, y: 100 },
+      overlayPosition: { x: 100, y: 100 },
       aiSettings: {
         provider: 'gemini',
         openaiApiKey: '',
@@ -993,6 +995,12 @@ ipcMain.handle('move-window', async (_, deltaX: number, deltaY: number) => {
       const newY = lastDragPosition.y + deltaY
       
       floatingOverlayWindow.setPosition(Math.round(newX), Math.round(newY))
+      
+      // Save new position to settings
+      const settings = store.get('settings', {}) as AppSettings
+      settings.overlayPosition = { x: newX, y: newY }
+      store.set('settings', settings)
+      
       logToFile(`Floating overlay moved to (${newX}, ${newY})`, 'DEBUG')
       return true
     }

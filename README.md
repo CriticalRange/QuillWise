@@ -376,7 +376,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
 
-**Made with ❤️ by the QuillWise Team**
+**Made with ❤️ by CriticalRange**
 
 ⭐ Star us on GitHub if you find QuillWise useful!
 

@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2024 QuillWise
+Copyright (c) 2025 CriticalRange
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,30 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-QuillWise - AI-Powered Writing Assistant
-=========================================
-
-QuillWise is an intelligent writing assistant that provides:
-
-✨ Real-time AI-powered text suggestions
-🌍 Advanced translation capabilities  
-📝 Smart text summarization
-🎯 Writing enhancement and correction
-⚡ Global hotkeys for instant access
-🎨 Floating overlay for seamless integration
-
-Features:
-- Real-time text input detection
-- AI-powered writing suggestions
-- Multi-language translation support
-- Text summarization and enhancement
-- Global keyboard shortcuts
-- Floating overlay interface
-- System tray integration
-- Cross-platform compatibility
-
-For more information, visit: https://quillwise.com
-Support: support@quillwise.com

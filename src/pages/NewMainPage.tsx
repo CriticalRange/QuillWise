@@ -1,9 +1,7 @@
-import { Edit3, Globe, Type, Settings, Library, BarChart3, Keyboard, MousePointer } from 'lucide-react'
-import { useAppStore } from '../store/useAppStore'
+import { Edit3, Globe, Type, Settings, Library, BarChart3, Keyboard } from 'lucide-react'
 import { useAIToolsStore } from '../store/useAIToolsStore'
 
 export function NewMainPage() {
-  const { showOverlay } = useAppStore()
   const { promptTool, translationTool, summarizationTool, enhancementTool } = useAIToolsStore()
 
   const stats = [
@@ -61,13 +59,7 @@ export function NewMainPage() {
   ]
 
   const quickActions = [
-    {
-      id: 'test-overlay',
-      label: 'Try Tools',
-      description: 'Test the overlay system',
-      icon: MousePointer,
-      action: () => showOverlay()
-    },
+
     {
       id: 'settings',
       label: 'Preferences',

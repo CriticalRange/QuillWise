@@ -8,7 +8,9 @@ import { usePromptStore } from './store/usePromptStore'
 import SettingsPage from './pages/SettingsPage'
 import AboutPage from './pages/AboutPage'
 import OnboardingPage from './pages/OnboardingPage'
-import FloatingOverlayPage from './pages/FloatingOverlayPage'
+
+import ContextMenuPage from './pages/ContextMenuPage'
+import AIToolsPage from './pages/AIToolsPage'
 
 // Components
 import Layout from './components/Layout'
@@ -65,11 +67,11 @@ function App() {
     return <OnboardingPage />
   }
 
-  // Check if we're in floating overlay mode
-  const isFloatingOverlay = window.location.hash === '#/floating-overlay'
+  // Check if we're in context menu mode
+  const isContextMenu = window.location.hash === '#/context-menu'
 
-  if (isFloatingOverlay) {
-    return <FloatingOverlayPage />
+  if (isContextMenu) {
+    return <ContextMenuPage />
   }
 
   return (
@@ -77,7 +79,8 @@ function App() {
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Layout>
           <Routes>
-            <Route path="/" element={<Navigate to="/settings" replace />} />
+            <Route path="/" element={<Navigate to="/ai-tools" replace />} />
+            <Route path="/ai-tools" element={<AIToolsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/about" element={<AboutPage />} />
           </Routes>

@@ -14,6 +14,8 @@ const defaultSettings: AppSettings = {
   theme: 'system',
   fontSize: 14,
   autoHide: true,
+  autoSelectText: false,
+  devMode: false,
 
   onboardingCompleted: false,
   clipboardReplacement: false,
@@ -32,13 +34,7 @@ const defaultSettings: AppSettings = {
     maxTokens: 1000,
     temperature: 0.7
   },
-  overlaySettings: {
-    position: 'top-left',
-    offset: { x: 20, y: 60 },
-    followCursor: false,
-    stayOnScreen: true,
-    alwaysOnTop: true
-  }
+
 }
 
 export const useSettingsStore = create<SettingsStore>((set, get) => ({
@@ -59,10 +55,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
             ...defaultSettings.aiSettings, 
             ...settings.aiSettings 
           },
-          overlaySettings: { 
-            ...defaultSettings.overlaySettings, 
-            ...settings.overlaySettings 
-          }
+
         }
       } else {
         // Fallback for development/browser mode
@@ -76,10 +69,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
               ...defaultSettings.aiSettings, 
               ...parsed.aiSettings 
             },
-            overlaySettings: { 
-              ...defaultSettings.overlaySettings, 
-              ...parsed.overlaySettings 
-            }
+
           }
         }
       }
@@ -103,10 +93,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
         ...currentSettings.aiSettings, 
         ...newSettings.aiSettings 
       },
-      overlaySettings: { 
-        ...currentSettings.overlaySettings, 
-        ...newSettings.overlaySettings 
-      }
+
     }
     
     try {

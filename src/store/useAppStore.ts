@@ -15,8 +15,7 @@ interface AppStore {
   showWindow: () => Promise<void>
   hideWindow: () => Promise<void>
   
-  // Overlay management
-  showOverlay: () => void
+
   
   // Clipboard operations
   copyToClipboard: (text: string) => Promise<void>
@@ -25,7 +24,7 @@ interface AppStore {
   navigateTo: (route: string) => void
 }
 
-export const useAppStore = create<AppStore>((set, get) => ({
+export const useAppStore = create<AppStore>((set) => ({
   isVisible: false,
   currentRoute: '/main',
   isInitialized: false,
@@ -81,16 +80,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }
   },
 
-  showOverlay: () => {
-    try {
-      if (window.electronAPI?.showGlobalOverlay) {
-        // Use overlay settings from user preferences
-        window.electronAPI.showGlobalOverlay({ useSettings: true })
-      }
-    } catch (error) {
-      console.error('Failed to show overlay:', error)
-    }
-  },
+
 
   navigateTo: (route) => {
     set({ currentRoute: route })

@@ -1,7 +1,6 @@
 import React from 'react'
 import { Loader2 } from 'lucide-react'
 import { useSettingsStore } from '../store/useSettingsStore'
-import logoIcon from '../assets/icon.png'
 
 const LoadingScreen: React.FC = () => {
   const { settings } = useSettingsStore()

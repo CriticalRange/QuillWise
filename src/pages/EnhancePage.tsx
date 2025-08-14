@@ -1,12 +1,12 @@
 import { ArrowLeft, Copy, RefreshCw, Sparkles, BookOpen, Wand2, Heart } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
-import { useAppStore } from '../store/useAppStore'
 import { useAIToolsStore } from '../store/useAIToolsStore'
 
 export default function EnhancePage() {
   const navigate = useNavigate()
-  const { copyToClipboard } = useAppStore()
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+  }
   
   const {
     enhancementTool,

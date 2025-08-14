@@ -43,6 +43,13 @@ class AIService {
   async generateSuggestion(request: SuggestionRequest): Promise<SuggestionResponse> {
     const { text, context = 'general', type = 'improve' } = request
     
+    // Check if DEV MODE is enabled - if so, just log and return
+    const settings = JSON.parse(localStorage.getItem('quillwise_settings') || '{}')
+    if (settings.devMode) {
+      console.log('DEV MODE: AI request blocked. Selected text:', text)
+      throw new Error('DEV MODE is enabled. AI requests are disabled.')
+    }
+    
     // Create cache key
     const cacheKey = `${text}-${context}-${type}`
     
@@ -118,7 +125,7 @@ class AIService {
     // Handle enhancement contexts
     if (context.startsWith('enhancement_')) {
       const parts = context.split('_')
-      const enhancementType = parts[1]
+      // const enhancementType = parts[1] // Currently unused
       const customPrompt = parts.slice(2).join('_')
       
       return `${customPrompt}:\n\n"${text}"\n\nResult:`
@@ -182,9 +189,23 @@ class AIService {
   // Google Gemini API call
   private async callGemini(prompt: string): Promise<string> {
     // Use the correct Gemini model names
-    const modelName = this.config.model || 'gemini-1.5-flash'
-    const validModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro', 'gemini-pro-vision']
-    const finalModel = validModels.includes(modelName) ? modelName : 'gemini-1.5-flash'
+    const modelName = this.config.model || 'gemini-2.5-flash'
+    const validModels = [
+      'gemini-2.5-pro',
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-lite',
+      'gemini-2.0-flash',
+      'gemini-2.0-flash-lite',
+      'gemini-1.5-flash',
+      'gemini-1.5-flash-8b',
+      'gemini-1.5-pro',
+      'gemini-live-2.5-flash-preview',
+      'gemini-2.5-flash-preview-tts',
+      'gemini-2.5-pro-preview-tts',
+      'gemini-2.0-flash-preview-image-generation',
+      'gemini-2.0-flash-live-001'
+    ]
+    const finalModel = validModels.includes(modelName) ? modelName : 'gemini-2.5-flash'
     
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${finalModel}:generateContent?key=${this.config.apiKey}`, {
       method: 'POST',
@@ -347,7 +368,7 @@ class AIService {
         provider: aiSettings.provider || this.config.provider || 'ollama',
         apiKey: aiSettings.provider === 'ollama' ? undefined : 
                 aiSettings.provider === 'gemini' ? aiSettings.geminiApiKey : aiSettings.openaiApiKey,
-        model: aiSettings.model || (aiSettings.provider === 'gemini' ? 'gemini-1.5-flash' : 'gpt-3.5-turbo'),
+        model: aiSettings.model || (aiSettings.provider === 'gemini' ? 'gemini-2.5-flash' : 'gpt-3.5-turbo'),
         maxTokens: aiSettings.maxTokens || 1000,
         temperature: aiSettings.temperature || 0.7,
         ollamaUrl: aiSettings.ollamaUrl || 'http://localhost:11434',

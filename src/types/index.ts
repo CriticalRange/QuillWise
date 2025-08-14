@@ -24,6 +24,8 @@ export interface AppSettings {
   theme: 'light' | 'dark' | 'system'
   fontSize: number
   autoHide: boolean
+  autoSelectText: boolean
+  devMode?: boolean
 
   onboardingCompleted?: boolean
   clipboardReplacement?: boolean
@@ -36,7 +38,7 @@ export interface AppSettings {
 
   // AI API Settings
   aiSettings?: {
-    provider?: 'openai' | 'gemini' | 'ollama'
+    provider?: 'openai' | 'anthropic' | 'gemini'
     openaiApiKey?: string
     geminiApiKey?: string
     model?: string
@@ -49,14 +51,7 @@ export interface AppSettings {
     useLocalForSensitive?: boolean
     sensitiveContentDetection?: boolean
   }
-  // Overlay Position Settings
-  overlaySettings?: {
-    position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center' | 'cursor'
-    offset?: { x: number; y: number }
-    followCursor?: boolean
-    stayOnScreen?: boolean
-    alwaysOnTop?: boolean
-  }
+
 }
 
 

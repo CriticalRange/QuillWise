@@ -48,7 +48,7 @@ export class OllamaService {
     try {
       const response = await fetch(`${this.baseUrl}/api/tags`, {
         method: 'GET',
-        timeout: 5000,
+        // timeout: 5000, // Not supported in standard fetch
       })
       return response.ok
     } catch (error) {
@@ -62,7 +62,7 @@ export class OllamaService {
     try {
       const response = await fetch(`${this.baseUrl}/api/tags`, {
         method: 'GET',
-        timeout: 10000,
+        // timeout: 10000, // Not supported in standard fetch
       })
 
       if (!response.ok) {
@@ -165,9 +165,13 @@ export class OllamaService {
         throw new Error('No response body reader available')
       }
 
-      while (true) {
+      let reading = true
+      while (reading) {
         const { done, value } = await reader.read()
-        if (done) break
+        if (done) {
+          reading = false
+          break
+        }
 
         const chunk = decoder.decode(value)
         const lines = chunk.split('\n').filter(line => line.trim())
@@ -228,9 +232,13 @@ export class OllamaService {
         const reader = response.body.getReader()
         const decoder = new TextDecoder()
 
-        while (true) {
+        let pullReading = true
+        while (pullReading) {
           const { done, value } = await reader.read()
-          if (done) break
+          if (done) {
+            pullReading = false
+            break
+          }
 
           const chunk = decoder.decode(value)
           const lines = chunk.split('\n').filter(line => line.trim())

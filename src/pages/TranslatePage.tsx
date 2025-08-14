@@ -1,14 +1,15 @@
 import { Copy, RefreshCw, ArrowLeftRight, Volume2, Languages } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import { useAppStore } from '../store/useAppStore'
+import { useState } from 'react'
 import { useAIToolsStore } from '../store/useAIToolsStore'
 import LanguageSelector from '../components/LanguageSelector'
 import CopyPopup from '../components/CopyPopup'
 
 export default function TranslatePage() {
   const navigate = useNavigate()
-  const { copyToClipboard } = useAppStore()
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+  }
   const [showCopyPopup, setShowCopyPopup] = useState(false)
   
   const {

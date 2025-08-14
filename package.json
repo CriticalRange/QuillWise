@@ -1,6 +1,6 @@
 {
   "name": "quillwise",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "QuillWise - AI-powered writing assistant with translation, summarization, and text enhancement tools",
   "main": "dist/main/main.cjs",
   "homepage": "./",
@@ -31,6 +31,7 @@
     "@electron-toolkit/utils": "^3.0.0",
     "clsx": "^2.0.0",
     "electron-store": "^8.1.0",
+    "koffi": "^2.13.0",
     "lucide-react": "^0.303.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -91,7 +92,9 @@
     "protocols": [
       {
         "name": "quillwise",
-        "schemes": ["quillwise"],
+        "schemes": [
+          "quillwise"
+        ],
         "role": "Editor"
       }
     ],
@@ -145,7 +148,12 @@
       "license": "LICENSE",
       "warningsAsErrors": false,
       "displayLanguageSelector": true,
-      "installerLanguages": ["en", "tr", "fr", "de"],
+      "installerLanguages": [
+        "en",
+        "tr",
+        "fr",
+        "de"
+      ],
       "deleteAppDataOnUninstall": false,
       "allowElevation": true,
       "perMachine": false

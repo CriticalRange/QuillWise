@@ -1,12 +1,12 @@
 import { ArrowLeft, Copy, RefreshCw, FileText, List, AlignLeft, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
-import { useAppStore } from '../store/useAppStore'
 import { useAIToolsStore } from '../store/useAIToolsStore'
 
 export default function SummarizePage() {
   const navigate = useNavigate()
-  const { copyToClipboard } = useAppStore()
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+  }
   
   const {
     summarizationTool,

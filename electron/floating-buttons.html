@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floating Buttons</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-app-region: no-drag;
+        }
+
+        .floating-container {
+            display: flex;
+            gap: 12px;
+            padding: 8px;
+            transition: opacity 0.3s ease;
+        }
+
+        .floating-container.transparent {
+            opacity: 0.4;
+        }
+
+        .floating-button {
+            background: rgba(139, 69, 193, 0.15);
+            border: 1px solid rgba(139, 69, 193, 0.3);
+            border-radius: 12px;
+            padding: 14px 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(139, 69, 193, 0.9);
+            box-shadow: 0 8px 32px rgba(139, 69, 193, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .floating-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .floating-button:hover::before {
+            left: 100%;
+        }
+
+        .floating-button:hover {
+            background: rgba(139, 69, 193, 0.25);
+            border-color: rgba(139, 69, 193, 0.5);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(139, 69, 193, 0.3);
+            color: rgba(139, 69, 193, 1);
+        }
+
+        .floating-button:active {
+            transform: translateY(-1px) scale(0.98);
+            box-shadow: 0 6px 20px rgba(139, 69, 193, 0.25);
+        }
+
+        .enhance-button {
+            background: linear-gradient(135deg, rgba(139, 69, 193, 0.9) 0%, rgba(124, 58, 237, 0.9) 50%, rgba(168, 85, 247, 0.9) 100%);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .enhance-button:hover {
+            background: linear-gradient(135deg, rgba(139, 69, 193, 1) 0%, rgba(124, 58, 237, 1) 50%, rgba(168, 85, 247, 1) 100%);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .settings-button {
+            background: rgba(107, 114, 128, 0.15);
+            color: rgba(107, 114, 128, 0.9);
+            border: 1px solid rgba(107, 114, 128, 0.3);
+        }
+
+        .settings-button:hover {
+            background: rgba(107, 114, 128, 0.25);
+            border-color: rgba(107, 114, 128, 0.5);
+            color: rgba(107, 114, 128, 1);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .enhance-button .loading {
+            border-color: rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+        }
+
+        .settings-button .loading {
+            border-color: rgba(107, 114, 128, 0.3);
+            border-top-color: rgba(107, 114, 128, 0.9);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .success-state {
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .error-state {
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .floating-button {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-container" id="floatingContainer">
+        <button class="floating-button enhance-button" id="enhanceBtn">
+            <span id="enhanceIcon">⭐</span>
+            <span id="enhanceText">Enhance</span>
+        </button>
+        <button class="floating-button" id="settingsBtn">
+            <span>⚙️</span>
+            <span>Settings</span>
+        </button>
+        <button id="getTextWithUIAutomation" class="floating-button">
+            <span class="btn-icon">🔍</span>
+            <span class="btn-text">Read Text (UI Automation)</span>
+        </button>
+        
+        <button id="getInputInfo" class="floating-button">
+            <span class="btn-icon">📝</span>
+            <span class="btn-text">Debug UI Automation</span>
+        </button>
+    </div>
+
+    <script>
+        let inactivityTimer;
+        let isEnhancing = false;
+
+        // Auto-hide after 5 seconds of inactivity
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            const container = document.getElementById('floatingContainer');
+            container.classList.remove('transparent');
+            
+            inactivityTimer = setTimeout(() => {
+                container.classList.add('transparent');
+            }, 5000);
+        }
+
+        // Mouse events to reset timer
+        document.addEventListener('mousemove', resetInactivityTimer);
+        document.addEventListener('mouseenter', resetInactivityTimer);
+        document.addEventListener('mouseleave', () => {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                document.getElementById('floatingContainer').classList.add('transparent');
+            }, 1000);
+        });
+
+        // Initialize timer
+        resetInactivityTimer();
+
+        // Event-driven monitoring using Windows Event Hook system
+        let lastActiveInputInfo = null;
+        let eventHookActive = false;
+        
+        async function startEventDrivenMonitoring() {
+            console.log('=== STARTING EVENT-DRIVEN INPUT MONITORING (SetWinEventHook) ===');
+            
+            try {
+                if (window.electronAPI && window.electronAPI.startWindowsEventHook) {
+                    const result = await window.electronAPI.startWindowsEventHook();
+                    if (result && result.success) {
+                        eventHookActive = true;
+                        console.log('✅ Windows Event Hook started successfully');
+                    } else {
+                        console.error('❌ Failed to start Windows Event Hook:', result?.error);
+                        // Fallback to manual monitoring if event hook fails
+                        startFallbackMonitoring();
+                    }
+                } else {
+                    console.warn('Windows Event Hook API not available, using fallback');
+                    startFallbackMonitoring();
+                }
+            } catch (error) {
+                console.error('Error starting event-driven monitoring:', error);
+                startFallbackMonitoring();
+            }
+        }
+        
+        function startFallbackMonitoring() {
+            console.log('=== STARTING FALLBACK MONITORING ===');
+            // Reduced frequency fallback monitoring (every 5 seconds instead of 2)
+            setInterval(async () => {
+                if (window.electronAPI && window.electronAPI.getTextWithUIAutomation) {
+                    try {
+                        const currentInputInfo = await window.electronAPI.getTextWithUIAutomation();
+                        handleInputFieldChange(currentInputInfo);
+                    } catch (error) {
+                        // Silently handle monitoring errors
+                    }
+                }
+            }, 5000);
+        }
+        
+        function handleInputFieldChange(currentInputInfo) {
+            const currentInfoString = JSON.stringify(currentInputInfo);
+            const lastInfoString = JSON.stringify(lastActiveInputInfo);
+            
+            if (currentInfoString !== lastInfoString) {
+                console.log('=== INPUT FIELD FOCUS CHANGED ===');
+                console.log('Previous:', lastActiveInputInfo);
+                console.log('Current:', currentInputInfo);
+                
+                if (currentInputInfo && currentInputInfo.success && currentInputInfo.elementInfo) {
+                    console.log('✅ Input field detected!');
+                    console.log('🎯 NEW ACTIVE INPUT DETECTED:');
+                    console.log('Element Name:', currentInputInfo.elementInfo.elementName);
+                    console.log('Window Title:', currentInputInfo.elementInfo.windowTitle);
+                    console.log('Process:', currentInputInfo.elementInfo.processName);
+                    
+                    if (currentInputInfo.text) {
+                        console.log('Current Text Content:', currentInputInfo.text);
+                    }
+                }
+                
+                lastActiveInputInfo = currentInputInfo;
+            }
+        }
+        
+        async function stopEventDrivenMonitoring() {
+            if (eventHookActive && window.electronAPI && window.electronAPI.stopWindowsEventHook) {
+                try {
+                    await window.electronAPI.stopWindowsEventHook();
+                    eventHookActive = false;
+                    console.log('Event-driven monitoring stopped');
+                } catch (error) {
+                    console.error('Error stopping event-driven monitoring:', error);
+                }
+            }
+        }
+        
+        // Start event-driven monitoring when page loads
+        startEventDrivenMonitoring();
+        
+        // Listen for Windows Event Hook messages from the main process
+        if (window.electronAPI && window.electronAPI.onActiveInputFieldInfo) {
+            window.electronAPI.onActiveInputFieldInfo((event, info) => {
+                console.log('=== RECEIVED INPUT FIELD INFO FROM EVENT HOOK ===');
+                console.log('Event Hook Input Field Info:', info);
+                
+                // Handle the event-driven input field change
+                if (info && info.success) {
+                    handleInputFieldChange(info);
+                }
+                
+                if (info.text) {
+                    console.log('Event Hook Input Field Text:', info.text);
+                }
+                if (info.elementInfo && info.elementInfo.elementName) {
+                    console.log('Element Name from Event Hook:', info.elementInfo.elementName);
+                }
+            });
+        }
+        
+        // Listen for selected text changes from Event Hook
+        if (window.electronAPI && window.electronAPI.onSelectedTextChanged) {
+            window.electronAPI.onSelectedTextChanged((event, textInfo) => {
+                console.log('=== SELECTED TEXT CHANGED (EVENT HOOK) ===');
+                console.log('New selected text from Event Hook:', textInfo);
+                
+                // Handle text selection change
+                if (textInfo && textInfo.success) {
+                    handleInputFieldChange(textInfo);
+                }
+            });
+        }
+        
+        // Add window focus/blur monitoring for event-driven system
+        window.addEventListener('focus', () => {
+            console.log('=== FLOATING BUTTONS WINDOW FOCUSED ===');
+            // Event-driven system doesn't need restart on focus
+            if (!eventHookActive) {
+                startEventDrivenMonitoring();
+            }
+        });
+        
+        window.addEventListener('blur', () => {
+            console.log('=== FLOATING BUTTONS WINDOW BLURRED ===');
+            // Keep event-driven monitoring active even when blurred
+            // This allows tracking other app inputs efficiently
+        });
+        
+        // Add cleanup on window unload
+        window.addEventListener('beforeunload', () => {
+            console.log('=== FLOATING BUTTONS WINDOW UNLOADING ===');
+            stopEventDrivenMonitoring();
+        });
+        
+        // Monitor for clipboard changes
+        let lastClipboardContent = '';
+        setInterval(async () => {
+            if (window.electronAPI && window.electronAPI.getClipboardText) {
+                try {
+                    const currentClipboard = await window.electronAPI.getClipboardText();
+                    if (currentClipboard && currentClipboard !== lastClipboardContent) {
+                        console.log('=== CLIPBOARD CONTENT CHANGED ===');
+                        console.log('New clipboard content:', currentClipboard.substring(0, 100) + (currentClipboard.length > 100 ? '...' : ''));
+                        lastClipboardContent = currentClipboard;
+                    }
+                } catch (clipboardError) {
+                    // Silently handle clipboard monitoring errors
+                }
+            }
+        }, 3000);
+
+        // Enhanced debugging function for active input field using UI Automation
+        async function debugActiveInputField() {
+            console.log('=== DEBUGGING ACTIVE INPUT FIELD (UI AUTOMATION) ===');
+            
+            // Get current focused element info from the active application
+            if (window.electronAPI && window.electronAPI.getTextWithUIAutomation) {
+                try {
+                    console.log('🔍 Input box aranıyor... (UI Automation debug)');
+                    console.log('Calling getTextWithUIAutomation...');
+                    const activeInputInfo = await window.electronAPI.getTextWithUIAutomation();
+                    console.log('UI Automation Raw Result:', activeInputInfo);
+                    
+                    if (activeInputInfo && activeInputInfo.success) {
+                        console.log('✅ Input field bulundu! (UI Automation debug)');
+                        console.log('=== ACTIVE INPUT FIELD DETAILS ===');
+                        const elementInfo = activeInputInfo.elementInfo || {};
+                        console.log('Element Name:', elementInfo.elementName || 'N/A');
+                        console.log('Element ID:', elementInfo.elementId || 'N/A');
+                        console.log('Element Class:', elementInfo.elementClass || 'N/A');
+                        console.log('Control Type:', elementInfo.controlType || 'N/A');
+                        console.log('Automation ID:', elementInfo.automationId || 'N/A');
+                        console.log('Window Title:', elementInfo.windowTitle || 'N/A');
+                        console.log('Process Name:', elementInfo.processName || 'N/A');
+                        console.log('Process ID:', elementInfo.processId || 'N/A');
+                        console.log('Accessibility Name:', elementInfo.accessibilityName || 'N/A');
+                        
+                        if (activeInputInfo.text) {
+                            console.log('Active Input Field Text:', activeInputInfo.text);
+                            console.log('Text Length:', activeInputInfo.text.length);
+                        } else {
+                            console.log('No text content in active input field');
+                        }
+                        
+                        if (elementInfo.position) {
+                            console.log('Active Input Position:', elementInfo.position);
+                        }
+                        
+                        if (elementInfo.size) {
+                            console.log('Active Input Size:', elementInfo.size);
+                        }
+                    } else {
+                        console.log('❌ Hiçbir input field bulunamadı');
+                        if (activeInputInfo && activeInputInfo.error) {
+                            console.log('Error:', activeInputInfo.error);
+                        }
+                    }
+                } catch (inputError) {
+                    console.error('Error getting UI Automation input info:', inputError);
+                    console.error('Input Error stack:', inputError.stack);
+                }
+            } else {
+                console.log('getTextWithUIAutomation API not available');
+            }
+            
+            // Additional debugging for DOM focus
+            try {
+                console.log('=== DOM FOCUS DEBUGGING ===');
+                if (typeof document !== 'undefined') {
+                    const activeElement = document.activeElement;
+                    console.log('Document active element:', activeElement);
+                    console.log('Active element tag:', activeElement ? activeElement.tagName : 'N/A');
+                    console.log('Active element type:', activeElement ? activeElement.type : 'N/A');
+                    console.log('Active element id:', activeElement ? activeElement.id : 'N/A');
+                    console.log('Active element class:', activeElement ? activeElement.className : 'N/A');
+                }
+            } catch (domError) {
+                console.log('DOM focus debugging failed:', domError);
+            }
+        }
+
+        // Enhance button functionality
+        document.getElementById('enhanceBtn').addEventListener('click', async () => {
+            if (isEnhancing) return;
+            
+            isEnhancing = true;
+            const enhanceBtn = document.getElementById('enhanceBtn');
+            const enhanceIcon = document.getElementById('enhanceIcon');
+            const enhanceText = document.getElementById('enhanceText');
+            
+            // Show loading state
+            enhanceIcon.innerHTML = '<div class="loading"></div>';
+            enhanceText.textContent = 'Enhancing...';
+            enhanceBtn.style.pointerEvents = 'none';
+            
+            try {
+                console.log('=== ENHANCE BUTTON CLICKED ===');
+                
+                // Enhanced debugging for active input field
+                await debugActiveInputField();
+                
+                console.log('=== DEBUGGING getSelectedText API ===');
+                
+                // Safe API wrapper function
+                function safeElectronAPI(methodName) {
+                    if (!window.electronAPI) {
+                        console.error('electronAPI is not available');
+                        return null;
+                    }
+                    if (typeof window.electronAPI[methodName] !== 'function') {
+                        console.error(`electronAPI.${methodName} is not a function`);
+                        return null;
+                    }
+                    return window.electronAPI[methodName];
+                }
+                
+                // Step 1: Check API availability using safe wrapper
+                console.log('Step 1: Checking API availability...');
+                console.log('window.electronAPI exists:', !!window.electronAPI);
+                if (window.electronAPI) {
+                    console.log('electronAPI methods:', Object.keys(window.electronAPI));
+                }
+                
+                // Check specific API methods using safe wrapper
+                const requiredMethods = ['getSelectedText', 'getClipboardText', 'enhanceText'];
+                const missingMethods = requiredMethods.filter(method => !safeElectronAPI(method));
+                
+                if (missingMethods.length > 0) {
+                    console.error('Missing API methods:', missingMethods);
+                    alert(`Error: Missing API methods: ${missingMethods.join(', ')}. Please restart the application.`);
+                    return;
+                }
+                
+                // Step 2: Call getSelectedText with detailed logging
+                console.log('Step 2: Calling getSelectedText...');
+                console.log('Calling window.electronAPI.getSelectedText() now...');
+                
+                // Get selected text using the proper API with safe wrapper
+                let selectedText = '';
+                let selectedTextResult;
+                const getSelectedTextAPI = safeElectronAPI('getSelectedText');
+                if (getSelectedTextAPI) {
+                    try {
+                        selectedTextResult = await getSelectedTextAPI();
+                        console.log('getSelectedText call completed successfully');
+                        console.log('Raw result:', selectedTextResult);
+                        console.log('Result type:', typeof selectedTextResult);
+                        console.log('Result keys:', selectedTextResult ? Object.keys(selectedTextResult) : 'null/undefined');
+                    } catch (apiError) {
+                        console.error('getSelectedText API call failed:', apiError);
+                        console.error('API Error stack:', apiError.stack);
+                        selectedTextResult = null;
+                    }
+                } else {
+                    console.error('getSelectedText API is not available');
+                    selectedTextResult = null;
+                }
+                    
+                    // Step 3: Analyze result structure
+                    console.log('Step 3: Analyzing result structure...');
+                    if (selectedTextResult) {
+                        console.log('success property:', selectedTextResult.success);
+                        console.log('text property:', selectedTextResult.text);
+                        console.log('error property:', selectedTextResult.error);
+                        console.log('text length:', selectedTextResult.text ? selectedTextResult.text.length : 'N/A');
+                    }
+                    
+                    if (selectedTextResult && selectedTextResult.success && selectedTextResult.text) {
+                        selectedText = selectedTextResult.text;
+                        console.log('✓ Using selected text:', selectedText);
+                        console.log('Text Length:', selectedText.length);
+                    } else {
+                        console.warn('getSelectedText returned no text:', selectedTextResult);
+                        // Fallback to clipboard if no selected text
+                        selectedText = await window.electronAPI.getClipboardText();
+                        console.log('=== USING CLIPBOARD FALLBACK ===');
+                        console.log('Clipboard Text:', selectedText);
+                        if (selectedText) {
+                            console.log('Text Length:', selectedText.length);
+                        }
+                    }
+                
+                // Handle fallback if getSelectedText failed or returned no text
+                if (!selectedTextResult || !selectedTextResult.success || !selectedTextResult.text) {
+                    console.warn('getSelectedText returned no text, using clipboard fallback');
+                    // Fallback to clipboard if getSelectedText fails
+                    const getClipboardTextAPI = safeElectronAPI('getClipboardText');
+                    if (getClipboardTextAPI) {
+                        try {
+                            selectedText = await getClipboardTextAPI();
+                            console.log('=== USING CLIPBOARD FALLBACK (ERROR) ===');
+                            console.log('Clipboard Text:', selectedText);
+                            if (selectedText) {
+                                console.log('Text Length:', selectedText.length);
+                            }
+                        } catch (clipboardError) {
+                            console.error('Both getSelectedText and clipboard failed:', clipboardError);
+                            throw new Error('Unable to get text. Please select text and try again.');
+                        }
+                    } else {
+                        console.error('getClipboardText API is not available');
+                        throw new Error('Unable to get text. Please select text and try again.');
+                    }
+                }
+                
+                if (!selectedText || selectedText.trim() === '') {
+                    // Final fallback to clipboard if no selected text
+                    try {
+                        const clipboardText = await window.electronAPI.getClipboardText();
+                        if (!clipboardText || clipboardText.trim() === '') {
+                            throw new Error('No text selected or copied. Please select some text first!');
+                        }
+                        selectedText = clipboardText;
+                        console.log('=== USING CLIPBOARD FALLBACK (FINAL) ===');
+                        console.log('Clipboard Text:', selectedText);
+                        console.log('Text Length:', selectedText.length);
+                    } catch (clipboardError) {
+                        throw new Error('No text available. Please select text and try again.');
+                    }
+                }
+                
+                // Enhance text with AI
+                console.log('=== ENHANCING TEXT ===');
+                console.log('Text to enhance:', selectedText);
+                
+                const enhanceTextAPI = safeElectronAPI('enhanceText');
+                const copyToClipboardAPI = safeElectronAPI('copyToClipboard');
+                
+                if (!enhanceTextAPI || !copyToClipboardAPI) {
+                    throw new Error('Enhancement APIs are not available. Please restart the application.');
+                }
+                
+                const enhancedText = await enhanceTextAPI(selectedText);
+                console.log('=== TEXT ENHANCEMENT COMPLETED ===');
+                
+                if (enhancedText && enhancedText.trim() !== '') {
+                    // Copy enhanced text to clipboard
+                    await copyToClipboardAPI(enhancedText);
+                    
+                    // Show success state
+                    enhanceBtn.classList.add('success-state');
+                    enhanceIcon.textContent = '✨';
+                    enhanceText.textContent = 'Enhanced!';
+                    
+                    setTimeout(() => {
+                        enhanceBtn.classList.remove('success-state');
+                        enhanceIcon.textContent = '⭐';
+                        enhanceText.textContent = 'Enhance';
+                        enhanceBtn.style.pointerEvents = 'auto';
+                    }, 2500);
+                } else {
+                    throw new Error('AI enhancement returned empty result');
+                }
+            } catch (error) {
+                console.error('=== ENHANCEMENT ERROR ===');
+                console.error('Enhancement failed:', error);
+                console.error('Error stack:', error.stack);
+                
+                // Show error state
+                enhanceBtn.classList.add('error-state');
+                enhanceIcon.textContent = '⚠️';
+                enhanceText.textContent = 'Failed';
+                
+                // Determine error message based on error type
+                let errorMessage = 'Enhancement failed';
+                if (error.message) {
+                    if (error.message.includes('API not available')) {
+                        errorMessage = 'API Error';
+                    } else if (error.message.includes('No text')) {
+                        errorMessage = 'No text found';
+                    } else if (error.message.includes('Unable to get text')) {
+                        errorMessage = 'Text access failed';
+                    } else {
+                        errorMessage = error.message.length > 30 ? error.message.substring(0, 30) + '...' : error.message;
+                    }
+                }
+                
+                // Show error message briefly
+                setTimeout(() => {
+                    enhanceText.textContent = errorMessage;
+                }, 500);
+                
+                setTimeout(() => {
+                    enhanceBtn.classList.remove('error-state');
+                    enhanceIcon.textContent = '⭐';
+                    enhanceText.textContent = 'Enhance';
+                    enhanceBtn.style.pointerEvents = 'auto';
+                }, 3000);
+            } finally {
+                isEnhancing = false;
+                console.log('=== ENHANCE BUTTON PROCESS FINISHED ===');
+            }
+        });
+
+        // Settings button functionality
+        document.getElementById('settingsBtn').addEventListener('click', function() {
+            console.log('Settings button clicked');
+            
+            // Safe API wrapper function
+            function safeElectronAPI(methodName) {
+                if (!window.electronAPI) {
+                    console.error('electronAPI is not available');
+                    alert('Error: Application APIs not loaded. Please restart the application.');
+                    return null;
+                }
+                if (typeof window.electronAPI[methodName] !== 'function') {
+                    console.error(`electronAPI.${methodName} is not a function`);
+                    alert(`Error: ${methodName} API is not available. Please restart the application.`);
+                    return null;
+                }
+                return window.electronAPI[methodName];
+            }
+            
+            const showMainWindowAPI = safeElectronAPI('showMainWindow');
+            const hideFloatingButtonsAPI = safeElectronAPI('hideFloatingButtons');
+            
+            if (showMainWindowAPI && hideFloatingButtonsAPI) {
+                showMainWindowAPI();
+                hideFloatingButtonsAPI();
+            }
+        });
+
+        // Get input info button (using UI Automation)
+        document.getElementById('getInputInfo').addEventListener('click', async () => {
+            console.log('Input box aranıyor... (UI Automation)')
+            try {
+                const inputInfo = await window.electronAPI.getTextWithUIAutomation()
+                console.log('Input field bulundu:', inputInfo)
+                
+                if (inputInfo.success) {
+                    console.log('Active input field detected:', {
+                        text: inputInfo.text,
+                        elementInfo: inputInfo.elementInfo
+                    })
+                } else {
+                    console.log('No active input field found:', inputInfo.error)
+                }
+            } catch (error) {
+                console.error('Error getting input info:', error)
+            }
+        })
+        
+        // UI Automation text reading button
+        document.getElementById('getTextWithUIAutomation').addEventListener('click', async () => {
+            console.log('=== UI AUTOMATION TEXT READING BAŞLATILIYOR ===')
+            try {
+                const result = await window.electronAPI.getTextWithUIAutomation()
+                console.log('UI Automation sonucu:', result)
+                
+                if (result.success) {
+                    console.log('✅ UI Automation başarılı!')
+                    console.log('📝 Okunan metin:', result.text)
+                    console.log('📊 Element bilgileri:', result.elementInfo)
+                    
+                    // Show result in a more visible way
+                    if (result.text && result.text.length > 0) {
+                        console.log(`🎯 BAŞARILI! Metin içeriği (${result.text.length} karakter):`, result.text)
+                        
+                        // Show notification-like message
+                        const notification = document.createElement('div')
+                        notification.style.cssText = `
+                            position: fixed;
+                            top: 20px;
+                            right: 20px;
+                            background: #4CAF50;
+                            color: white;
+                            padding: 15px;
+                            border-radius: 8px;
+                            z-index: 10000;
+                            max-width: 300px;
+                            word-wrap: break-word;
+                            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                        `
+                        notification.innerHTML = `
+                            <strong>✅ Metin Okundu!</strong><br>
+                            <small>Uzunluk: ${result.text.length} karakter</small><br>
+                            <div style="margin-top: 8px; font-size: 12px; background: rgba(255,255,255,0.2); padding: 5px; border-radius: 4px; max-height: 100px; overflow-y: auto;">
+                                ${result.text.substring(0, 200)}${result.text.length > 200 ? '...' : ''}
+                            </div>
+                        `
+                        document.body.appendChild(notification)
+                        
+                        setTimeout(() => {
+                            document.body.removeChild(notification)
+                        }, 5000)
+                    } else {
+                        console.log('⚠️ Metin bulunamadı veya boş')
+                    }
+                } else {
+                    console.log('❌ UI Automation başarısız:', result.error)
+                }
+            } catch (error) {
+                console.error('❌ UI Automation hatası:', error)
+            }
+        })
+
+        // Hide on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                console.log('Escape key pressed, hiding floating buttons');
+                
+                // Safe API wrapper function
+                function safeElectronAPI(methodName) {
+                    if (!window.electronAPI) {
+                        console.error('electronAPI is not available');
+                        return null;
+                    }
+                    if (typeof window.electronAPI[methodName] !== 'function') {
+                        console.error(`electronAPI.${methodName} is not a function`);
+                        return null;
+                    }
+                    return window.electronAPI[methodName];
+                }
+                
+                const hideFloatingButtonsAPI = safeElectronAPI('hideFloatingButtons');
+                if (hideFloatingButtonsAPI) {
+                    hideFloatingButtonsAPI();
+                }
+            }
+        });
+
+        // Prevent context menu
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>

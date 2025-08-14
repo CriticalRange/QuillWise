@@ -29,6 +29,7 @@
   
   .custom-scrollbar::-webkit-scrollbar {
     width: 8px;
+    height: 8px;
   }
   
   .custom-scrollbar::-webkit-scrollbar-track {
@@ -51,6 +52,11 @@
   
   .custom-scrollbar::-webkit-scrollbar-thumb:active {
     background: linear-gradient(45deg, rgba(139, 92, 246, 0.7), rgba(168, 85, 247, 0.8));
+  }
+  
+  /* Horizontal scrollbar for tabs - minimal style */
+  .custom-scrollbar::-webkit-scrollbar-corner {
+    background: transparent;
   }
   
   /* Card component */

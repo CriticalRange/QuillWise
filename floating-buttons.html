@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floating Buttons</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-app-region: no-drag;
+        }
+
+        .floating-container {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: opacity 0.3s ease;
+        }
+
+        .floating-container.fade {
+            opacity: 0.3;
+        }
+
+        .floating-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .floating-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .floating-button:active {
+            transform: translateY(0);
+        }
+
+        .enhance-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .enhance-button:hover {
+            background: linear-gradient(135deg, #7c8ef0 0%, #8a5bb8 100%);
+        }
+
+        .settings-button {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .settings-button:hover {
+            background: linear-gradient(135deg, #f5a3ff 0%, #ff6b82 100%);
+        }
+
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .icon {
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-container" id="floatingContainer">
+        <button class="floating-button enhance-button" id="enhanceBtn">
+            <span class="icon">⭐</span>
+            <span>Enhance</span>
+        </button>
+        <button class="floating-button settings-button" id="settingsBtn">
+            <span class="icon">⚙️</span>
+        </button>
+    </div>
+
+    <script>
+        let fadeTimeout;
+        let isInteracting = false;
+
+        const container = document.getElementById('floatingContainer');
+        const enhanceBtn = document.getElementById('enhanceBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+
+        // Safe API wrapper to check if electronAPI methods exist
+        function safeElectronAPI(methodName) {
+            if (!window.electronAPI) {
+                console.error('electronAPI is not available');
+                return null;
+            }
+            if (typeof window.electronAPI[methodName] !== 'function') {
+                console.error(`electronAPI.${methodName} is not a function`);
+                return null;
+            }
+            return window.electronAPI[methodName];
+        }
+
+        // Auto-fade after 5 seconds of no interaction
+        function resetFadeTimer() {
+            clearTimeout(fadeTimeout);
+            container.classList.remove('fade');
+            isInteracting = true;
+            
+            fadeTimeout = setTimeout(() => {
+                if (!isInteracting) {
+                    container.classList.add('fade');
+                }
+            }, 5000);
+        }
+
+        // Mouse events
+        container.addEventListener('mouseenter', () => {
+            isInteracting = true;
+            container.classList.remove('fade');
+        });
+
+        container.addEventListener('mouseleave', () => {
+            isInteracting = false;
+            resetFadeTimer();
+        });
+
+        // Enhance button click
+        enhanceBtn.addEventListener('click', async () => {
+            try {
+                enhanceBtn.classList.add('loading');
+                enhanceBtn.disabled = true;
+
+                // Get selected text with safe API check
+                const getSelectedTextAPI = safeElectronAPI('getSelectedText');
+                if (!getSelectedTextAPI) {
+                    alert('getSelectedText API is not available. Please restart the application.');
+                    return;
+                }
+                
+                const selectedTextResult = await getSelectedTextAPI();
+                
+                if (!selectedTextResult.success || !selectedTextResult.text) {
+                    alert('No text selected. Please select some text first.');
+                    return;
+                }
+
+                // Enhance the text with safe API check
+                const enhanceTextAPI = safeElectronAPI('enhanceText');
+                if (!enhanceTextAPI) {
+                    alert('enhanceText API is not available. Please restart the application.');
+                    return;
+                }
+                
+                const result = await enhanceTextAPI(selectedTextResult.text);
+                
+                if (result.success && result.enhancedText) {
+                    // Copy enhanced text to clipboard with safe API check
+                    const copyToClipboardAPI = safeElectronAPI('copyToClipboard');
+                    if (copyToClipboardAPI) {
+                        await copyToClipboardAPI(result.enhancedText);
+                    }
+                    
+                    // Hide floating buttons with safe API check
+                    const hideFloatingButtonsAPI = safeElectronAPI('hideFloatingButtons');
+                    if (hideFloatingButtonsAPI) {
+                        await hideFloatingButtonsAPI();
+                    }
+                } else {
+                    alert('Failed to enhance text: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error enhancing text:', error);
+                alert('Error enhancing text: ' + error.message);
+            } finally {
+                enhanceBtn.classList.remove('loading');
+                enhanceBtn.disabled = false;
+            }
+        });
+
+        // Settings button click
+        settingsBtn.addEventListener('click', async () => {
+            try {
+                const showMainWindowAPI = safeElectronAPI('showMainWindow');
+                if (!showMainWindowAPI) {
+                    alert('showMainWindow API is not available. Please restart the application.');
+                    return;
+                }
+                await showMainWindowAPI();
+            } catch (error) {
+                console.error('Error showing main app:', error);
+            }
+        });
+
+        // Initialize fade timer
+        resetFadeTimer();
+
+        // Handle escape key to hide buttons
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const hideFloatingButtonsAPI = safeElectronAPI('hideFloatingButtons');
+                if (hideFloatingButtonsAPI) {
+                    hideFloatingButtonsAPI();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

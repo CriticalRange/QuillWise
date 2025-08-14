@@ -6,6 +6,7 @@ const api = {
   // Clipboard operations
   copyToClipboard: (text: string) => ipcRenderer.invoke('copy-to-clipboard', text),
   getClipboardText: () => ipcRenderer.invoke('get-clipboard-text'),
+  getSelectedText: () => ipcRenderer.invoke('get-selected-text'),
   
   // Settings management
   getSettings: () => ipcRenderer.invoke('get-settings'),
@@ -30,10 +31,16 @@ const api = {
     return () => ipcRenderer.removeAllListeners('navigate')
   },
   
-  // Floating overlay events
+  
   onClipboardText: (callback: (text: string) => void) => {
     ipcRenderer.on('clipboard-text', (_, text) => callback(text))
     return () => ipcRenderer.removeAllListeners('clipboard-text')
+  },
+
+  // Context menu events
+  onSelectedText: (callback: (text: string) => void) => {
+    ipcRenderer.on('selected-text', (_, text) => callback(text))
+    return () => ipcRenderer.removeAllListeners('selected-text')
   },
   
   // Window movement for dragging
@@ -41,7 +48,34 @@ const api = {
   moveWindow: (deltaX: number, deltaY: number) => ipcRenderer.invoke('move-window', deltaX, deltaY),
   
   // Copy text to clipboard (for manual pasting)
-  sendTextToActiveWindow: (text: string) => ipcRenderer.invoke('send-text-to-active-window', text)
+  sendTextToActiveWindow: (text: string) => ipcRenderer.invoke('send-text-to-active-window', text),
+  
+  // Removed getActiveInputInfo - now using only UI Automation API
+  getTextWithUIAutomation: () => ipcRenderer.invoke('get-text-with-ui-automation'),
+  
+  // Windows Event Hook system
+  startWindowsEventHook: () => ipcRenderer.invoke('start-windows-event-hook'),
+  stopWindowsEventHook: () => ipcRenderer.invoke('stop-windows-event-hook'),
+  getEventHookStatus: () => ipcRenderer.invoke('get-event-hook-status'),
+  
+  // Event listeners for Windows Event Hook
+  onActiveInputFieldInfo: (callback: (event: any, info: any) => void) => {
+    ipcRenderer.on('active-input-field-info', callback)
+    return () => ipcRenderer.removeAllListeners('active-input-field-info')
+  },
+  
+  onSelectedTextChanged: (callback: (event: any, textInfo: any) => void) => {
+    ipcRenderer.on('selected-text-changed', callback)
+    return () => ipcRenderer.removeAllListeners('selected-text-changed')
+  },
+  
+  // Floating buttons functionality
+  enhanceText: (text: string) => ipcRenderer.invoke('enhance-text', text),
+  showMainWindow: () => ipcRenderer.invoke('show-main-window'),
+  hideFloatingButtons: () => ipcRenderer.invoke('hide-floating-buttons'),
+  
+  setIgnoreMouseEvents: (ignore: boolean, options?: { forward: boolean }) => 
+    ipcRenderer.invoke('set-ignore-mouse-events', ignore, options)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

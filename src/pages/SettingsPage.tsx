@@ -53,6 +53,8 @@ const SettingsPage: React.FC = () => {
     setHasChanges(true)
   }, [])
 
+
+
   const fetchOllamaModels = React.useCallback(async () => {
     setIsLoadingModels(true)
     try {
@@ -317,6 +319,45 @@ const SettingsPage: React.FC = () => {
               </label>
             </div>
 
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Auto-select all text
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Automatically select all text when using global hotkey
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={localSettings.autoSelectText}
+                  onChange={(e) => handleSettingChange('autoSelectText', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  DEV MODE
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Disable AI requests and only log selected text for debugging
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={localSettings.devMode || false}
+                  onChange={(e) => handleSettingChange('devMode', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 dark:peer-focus:ring-orange-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-orange-600"></div>
+              </label>
+            </div>
 
           </div>
         </div>
@@ -599,14 +640,33 @@ const SettingsPage: React.FC = () => {
                     </>
                   ) : (
                     <select
-                      value={localSettings.aiSettings?.model || (localSettings.aiSettings?.provider === 'gemini' ? 'gemini-1.5-flash' : 'gpt-3.5-turbo')}
+                      value={localSettings.aiSettings?.model || (localSettings.aiSettings?.provider === 'gemini' ? 'gemini-2.5-flash' : 'gpt-3.5-turbo')}
                       onChange={(e) => handleAISettingChange('model', e.target.value)}
                       className="input text-sm"
                     >
                       {localSettings.aiSettings?.provider === 'gemini' ? (
                         <>
-                          <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast)</option>
-                          <option value="gemini-1.5-pro">Gemini 1.5 Pro (Quality)</option>
+                          <optgroup label="Gemini 2.5 (Latest)">
+                            <option value="gemini-2.5-pro">Gemini 2.5 Pro (Most Capable)</option>
+                            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recommended)</option>
+                            <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Fast)</option>
+                          </optgroup>
+                          <optgroup label="Gemini 2.0">
+                            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                            <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite</option>
+                          </optgroup>
+                          <optgroup label="Gemini 1.5 (Legacy)">
+                            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                            <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                            <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash 8B</option>
+                          </optgroup>
+                          <optgroup label="Preview/Experimental">
+                            <option value="gemini-live-2.5-flash-preview">Gemini 2.5 Flash Live (Preview)</option>
+                            <option value="gemini-2.5-flash-preview-tts">Gemini 2.5 Flash TTS (Preview)</option>
+                            <option value="gemini-2.5-pro-preview-tts">Gemini 2.5 Pro TTS (Preview)</option>
+                            <option value="gemini-2.0-flash-preview-image-generation">Gemini 2.0 Flash Image Gen (Preview)</option>
+                            <option value="gemini-2.0-flash-live-001">Gemini 2.0 Flash Live (Preview)</option>
+                          </optgroup>
                         </>
                       ) : (
                         <>

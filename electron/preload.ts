@@ -5,6 +5,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 contextBridge.exposeInMainWorld('electronAPI', {
   // Clipboard operations
   copyToClipboard: (text: string) => ipcRenderer.invoke('copy-to-clipboard', text),
+  getClipboardText: () => ipcRenderer.invoke('get-clipboard-text'),
   
   // Settings management
   getSettings: () => ipcRenderer.invoke('get-settings'),
@@ -39,12 +40,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Remove listeners
   removeAllListeners: (channel: string) => {
     ipcRenderer.removeAllListeners(channel)
-  }
+  },
+
+  // Simple text enhancement API
+  quickEnhanceText: () => ipcRenderer.invoke('quick-enhance-text'),
+  getFocusedControlText: () => ipcRenderer.invoke('get-focused-control-text'),
+  enhanceText: (text: string) => ipcRenderer.invoke('enhance-text', text),
+  getSelectedText: () => ipcRenderer.invoke('get-selected-text'),
+  
+  // Enhancement options popup API
+  selectEnhancementOption: (text: string) => ipcRenderer.invoke('select-enhancement-option', text),
+  hideEnhancementOptions: () => ipcRenderer.invoke('hide-enhancement-options')
 })
 
 // Type definitions for the exposed API
 export interface ElectronAPI {
   copyToClipboard: (text: string) => Promise<boolean>
+  getClipboardText: () => Promise<string>
   getSettings: () => Promise<any>
   updateSettings: (settings: any) => Promise<boolean>
   hideWindow: () => Promise<boolean>
@@ -58,6 +70,12 @@ export interface ElectronAPI {
   onKeyEvent: (callback: (event: any) => void) => void
   onTextDetected: (callback: (text: string, context: any) => void) => void
   removeAllListeners: (channel: string) => void
+  quickEnhanceText: () => Promise<{ success: boolean }>
+  getFocusedControlText: () => Promise<{ success: boolean; text?: string; error?: string }>
+  enhanceText: (text: string) => Promise<{ success: boolean; enhancedText?: string; error?: string }>
+  getSelectedText: () => Promise<{ success: boolean; text?: string; error?: string }>
+  selectEnhancementOption: (text: string) => Promise<{ success: boolean }>
+  hideEnhancementOptions: () => Promise<{ success: boolean }>
 }
 
 declare global {
